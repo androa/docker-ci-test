@@ -9,7 +9,7 @@ dependencies:
 
 test:
   override:
-    - docker run --rm circleci/app npm run ci-test
+    - docker run --rm -v $CIRCLE_TEST_REPORTS:/usr/src/app/coverage circleci/app npm run ci-test
 
 #deployment:
 #  hub:

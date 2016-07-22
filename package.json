@@ -10,13 +10,14 @@
     "eslint": "^3.0.0",
     "nodemon": "^1.9.2",
     "supertest": "^1.2.0",
-    "tap": "^6.1.1"
+    "tap": "^6.1.1",
+    "tap-xunit": "^1.4.0"
   },
   "scripts": {
     "lint": "eslint lib/ test/",
     "test": "tap test/*.test.js -R spec",
     "watch": "nodemon -q -x npm test",
-    "ci-test": "npm run lint && npm run test -- --cov --coverage-report=lcov"
+    "ci-test": "npm run lint && mkdir -p reports/junit/ && npm run test -- -R tap | tap-xunit > reports/junit/unit-test-results.xml"
   },
   "author": "André Roaldseth <andre@roaldseth.net",
   "license": "ISC"
