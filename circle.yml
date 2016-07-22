@@ -5,7 +5,7 @@ machine:
 dependencies:
   override:
     - docker info
-    - docker build circleci/app .
+    - docker build -t circleci/app .
 
 test:
   override:
