@@ -6,7 +6,7 @@ node {
 
   stage 'Test image'
   newApp.inside {
-    sh 'npm t'
+    sh 'cd /usr/src/app && npm t'
   }
 
   stage 'Approve image'
