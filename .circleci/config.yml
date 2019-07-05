@@ -65,6 +65,7 @@ jobs:
   publish-docker-image:
     executor: deployment
     steps:
+      - setup_remote_docker
       - docker/push:
           image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
 
