@@ -27,6 +27,9 @@ jobs:
     steps:
       - checkout
       - run: echo "run some kind of build tool"
+      - docker/build:
+          image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
+          tag: $CIRCLE_SHA1
 
   prepare-nais:
     executor: kustomize
@@ -68,6 +71,7 @@ jobs:
       - setup_remote_docker
       - docker/push:
           image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
+          tag: $CIRCLE_SHA1
 
   deploy-preprod:
     executor: deployment
