@@ -11,3 +11,11 @@ jobs:
     steps:
       - checkout
       - run: ./gradlew build
+
+workflows:
+  version: 2.1
+  build-deploy:
+    jobs:
+      - build:
+        requires:
+          - build_jar
