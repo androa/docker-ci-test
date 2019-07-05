@@ -39,7 +39,7 @@ jobs:
     executor: kustomize
     steps:
       - checkout
-      - run: apk --no-cache add ca-certificates go
+      - run: apk --no-cache add ca-certificates go git
       - run: go get gopkg.in/mikefarah/yq.v2
       - run: echo "export TEAM_NAME=$(yq r nais/base/kustomization.yaml commonLabels.team)" >> ./nais/deploy.env
       - run: echo "export APP_NAME=$(yq r nais/base/kustomization.yaml commonLabels.app)" >> ./nais/deploy.env
