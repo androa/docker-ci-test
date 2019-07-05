@@ -27,10 +27,6 @@ jobs:
     executor: toolbox
     steps:
       - checkout
-      - run: pwd
-      - run: ls .
-      - run: ls /tmp
-      - run: ls /tmp/nais
       - run:
           name: "Set image version on base overlay"
           command: sed -i 's/latest/${CIRCLE_SHA1}/' ./nais/base/nais.yaml
@@ -43,7 +39,7 @@ jobs:
       - persist_to_workspace:
           root: nais
           paths:
-            - ./nais/*deploy.yaml
+            - "*deploy.yaml"
 
   acceptance-test-uat:
     executor: toolbox
