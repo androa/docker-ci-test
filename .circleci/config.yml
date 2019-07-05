@@ -10,7 +10,7 @@ jobs:
     executor: builder_java
     steps:
       - checkout
-      - run: ./gradlew build
+      - run: echo true
 
 workflows:
   version: 2.1
