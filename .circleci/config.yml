@@ -29,6 +29,7 @@ jobs:
 
   prepare-nais:
     executor: toolbox
+    working_directory: /tmp/nais
     steps:
       - attach_workspace:
           at: /tmp/nais
@@ -45,6 +46,10 @@ jobs:
       - run:
           name: "Prepare prod service contract"
           command: kustomize build ./nais/prod -o ./nais/nais-prod-deploy.yaml &&  cat ./nais/nais-prod-deploy.yaml
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./nais/*deploy.yaml
 
   acceptance-test-uat:
     executor: toolbox
