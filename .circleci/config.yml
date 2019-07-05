@@ -31,13 +31,11 @@ jobs:
     executor: toolbox
     steps:
       - attach_workspace:
-          at: /tmp/workspace
+          at: /tmp/nais
+      - run: pwd && ls . && ls /tmp && ls /tmp/nais
       - run:
           name: "Set image version on base overlay"
-          command: sed -i 's/latest/${VERSION}/' ./nais/base/nais.yaml
-          environment:
-            VERSION: $CIRCLE_PROJECT_REPONAME
-          #VERSION = sh(label: 'Get git sha1 as version', script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+          command: sed -i 's/latest/${CIRCLE_SHA1}/' ./nais/base/nais.yaml
       - run:
           name: "Prepare dev service contract"
           command: kustomize build ./nais/dev -o ./nais/nais-dev-deploy.yaml && cat ./nais/nais-dev-deploy.yaml
