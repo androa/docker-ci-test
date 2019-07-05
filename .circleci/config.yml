@@ -2,12 +2,8 @@ version: 2.1
 
 executors:
   builder-java:
-    docker:
-      - image: openjdk:11-jdk-slim
-
-  builder-docker:
-    docker:
-      - image: docker:stable
+     docker:
+       - image: circleci/openjdk:11-jdk
 
   toolbox:
     docker:
@@ -19,15 +15,7 @@ jobs:
     steps:
       - checkout
       - run: echo true
-
-  build-docker:
-    executor: builder-docker
-    steps:
       - run: docker build .
-
-  prepare-nais:
-    executor: toolbox
-    steps:
       - run: echo true
 
   deploy-preprod:
