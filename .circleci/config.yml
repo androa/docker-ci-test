@@ -8,15 +8,12 @@ executors:
   java:
      docker:
        - image: circleci/openjdk:11-jdk
-
   toolbox:
     docker:
       - image: alpine:latest
-
   deployment:
     docker:
       - image: navikt/deployment-cli
-
   kustomize:
     docker:
       - image: bitlayer/kustomize@sha256:ab559c7a492656e0260680f89b71cdf07ee79e190020354563e0fdd5f986ac00
@@ -42,11 +39,14 @@ jobs:
     executor: kustomize
     steps:
       - checkout
-      - run: apk --no-cache add ca-certificates
-      - run: echo 'export GIT_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
+      - run: apk --no-cache add ca-certificates go
+      - run: go get gopkg.in/mikefarah/yq.v2
+      - run: echo "export TEAM_NAME=$(yq r nais/base/kustomization.yaml commonLabels.team)" >> ./nais/deploy.env
+      - run: echo "export APP_NAME=$(yq r nais/base/kustomization.yaml commonLabels.app)" >> ./nais/deploy.env
+      - run: echo "export ZONE=$(yq r nais/base/kustomization.yaml commonAnnotations.zone)" >> ./nais/deploy.env
       - run:
-          name: "Set image version on base overlay"
-          command: sed -i 's/latest/${CIRCLE_SHA1}/' ./nais/base/nais.yaml
+          name: "Set image on base overlay"
+          command: yq w -i nais/base/nais.yaml spec.image ./nais/base/nais.yaml docker.io/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
       - run:
           name: "Prepare dev service contract"
           command: kustomize build ./nais/dev -o ./nais/nais-dev-deploy.yaml && cat ./nais/nais-dev-deploy.yaml
@@ -57,6 +57,7 @@ jobs:
           root: ./nais
           paths:
             - ./*deploy.yaml
+            - deploy.env
 
   acceptance-test-uat:
     executor: toolbox
@@ -78,6 +79,7 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/nais
+      - run: cat /tmp/nais/deploy.env >> $BASH_ENV
       - run: env
       - nais/generate-nais-deployment:
           nais-template: /tmp/nais/nais-dev-deploy.yaml
