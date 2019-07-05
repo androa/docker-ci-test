@@ -26,7 +26,9 @@ jobs:
     executor: java
     steps:
       - checkout
-      - run: echo "run some kind of build tool"
+      - run:
+          name: Lint, test, and build application
+          command: ./scripts/tests || mvn build || npm build || true
       - setup_remote_docker
       - docker/build:
           image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
@@ -57,17 +59,17 @@ jobs:
   acceptance-test-uat:
     executor: toolbox
     steps:
-      - run: echo true
+      - run: ./scripts/test/uat || true
 
   acceptance-test-integration:
     executor: toolbox
     steps:
-      - run: echo true
+      - run: ./scripts/test/integration || true
 
   acceptance-test-benchmark:
     executor: toolbox
     steps:
-      - run: echo true
+      - run: ./scripts/test/benchmark || true
 
   deploy-preprod:
     executor: deployment
