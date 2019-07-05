@@ -28,7 +28,10 @@ jobs:
     steps:
       - run:
           name: "Set image version on base overlay"
-          command: sed -i 's/latest/${CIRCLE_SHA1}/' ./nais/base/nais.yaml
+          command: sed -i 's/latest/${VERSION}/' ./nais/base/nais.yaml
+          environment:
+            VERSION: $CIRCLE_PROJECT_REPONAME
+          #VERSION = sh(label: 'Get git sha1 as version', script: 'git rev-parse --short HEAD', returnStdout: true).trim()
       - run:
           name: "Prepare dev service contract"
           command: kustomize build ./nais/dev -o ./nais/nais-dev-deploy.yaml && cat ./nais/nais-dev-deploy.yaml
@@ -55,7 +58,7 @@ jobs:
     executor: deployment
     steps:
       - nais/docker-deploy:
-          image: navikt/foo
+          image: $CIRCLE_PROJECT_REPONAME
 
   deploy-preprod:
     executor: deployment
@@ -63,7 +66,7 @@ jobs:
       - nais/generate-nais-deployment:
           nais-template: nais.yaml
           github-app-id: 1337
-          image: navikt/example-image
+          image: $CIRCLE_PROJECT_REPONAME
           environment: dev-fss
           repo: navikt/example-repo
           team: awesome-team
