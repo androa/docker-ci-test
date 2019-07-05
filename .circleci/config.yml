@@ -27,6 +27,7 @@ jobs:
     steps:
       - checkout
       - run: echo "run some kind of build tool"
+      - setup_remote_docker
       - docker/build:
           image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
           tag: $CIRCLE_SHA1
