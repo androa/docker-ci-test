@@ -89,7 +89,9 @@ workflows:
           requires:
             - build
             - prepare-nais
-      - deploy-preprod
+      - deploy-preprod:
+          requires:
+            - publish-docker-image
       - acceptance-test-uat:
           requires:
             - deploy-preprod
