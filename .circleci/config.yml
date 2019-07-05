@@ -3,7 +3,7 @@ version: 2.1
 executors:
   builder_java:
     docker:
-      - image: java:11-jdk-slim
+      - image: openjdk:11-jdk-slim
 
 jobs:
   build_jar:
