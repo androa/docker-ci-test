@@ -77,13 +77,14 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/nais
+      - run: env
       - nais/generate-nais-deployment:
           nais-template: /tmp/nais/nais-dev-deploy.yaml
           github-app-id: 1337
-          image: $CIRCLE_PROJECT_REPONAME
+          image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
           environment: dev-fss
-          repo: navikt/example-repo
-          team: awesome-team
+          repo: navikt/CIRCLE_PROJECT_REPONAME
+          team: dw-team
 
   deploy-prod:
     executor: deployment
@@ -91,9 +92,9 @@ jobs:
       - nais/generate-nais-deployment:
           nais-template: /tmp/nais/nais-prod-deploy.yaml
           github-app-id: 1337
-          image: navikt/example-image
+          image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
           environment: dev-fss
-          repo: navikt/example-repo
+          repo: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
           team: awesome-team
 
 workflows:
@@ -103,6 +104,7 @@ workflows:
       - build-and-push
       - prepare-nais
       - deploy-preprod:
+          context: my-context
           requires:
             - build-and-push
             - prepare-nais
