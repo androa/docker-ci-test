@@ -99,14 +99,15 @@ workflows:
   build-test-and-deploy:
     jobs:
       - build
-      - prepare-nais
+      - prepare-nais:
+          requires:
+            - build
       - publish-docker-image:
           requires:
             - build
       - deploy-preprod:
           requires:
             - publish-docker-image
-            - prepare-nais
       - acceptance-test-uat:
           requires:
             - deploy-preprod
