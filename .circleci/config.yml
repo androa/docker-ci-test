@@ -23,7 +23,7 @@ jobs:
       - checkout
       - run: echo "run some kind of build tool"
       - persist_to_workspace:
-          root: /tmp/workspace
+          root: .
           paths:
             - nais/*
 
