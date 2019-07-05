@@ -1,13 +1,13 @@
 version: 2.1
 
 executors:
-  builder-java:
+  builder_java:
     docker:
       - image: java:11-jdk-slim
 
 jobs:
-  build-jar:
-    executor: builder-java
+  build_jar:
+    executor: builder_java
     steps:
       - checkout
       - run: ./gradlew build
