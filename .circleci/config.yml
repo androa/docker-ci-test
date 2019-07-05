@@ -22,17 +22,11 @@ jobs:
     steps:
       - checkout
       - run: echo "run some kind of build tool"
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./nais/*
 
   prepare-nais:
     executor: toolbox
-    working_directory: /tmp/nais
     steps:
-      - attach_workspace:
-          at: /tmp/nais
+      - checkout
       - run: pwd
       - run: ls .
       - run: ls /tmp
@@ -47,7 +41,7 @@ jobs:
           name: "Prepare prod service contract"
           command: kustomize build ./nais/prod -o ./nais/nais-prod-deploy.yaml &&  cat ./nais/nais-prod-deploy.yaml
       - persist_to_workspace:
-          root: .
+          root: nais
           paths:
             - ./nais/*deploy.yaml
 
@@ -69,12 +63,24 @@ jobs:
   publish-docker-image:
     executor: deployment
     steps:
+      - attach_workspace:
+          at: /tmp/nais
+      - run: pwd
+      - run: ls .
+      - run: ls /tmp
+      - run: ls /tmp/nais
       - nais/docker-deploy:
           image: $CIRCLE_PROJECT_REPONAME
 
   deploy-preprod:
     executor: deployment
     steps:
+      - attach_workspace:
+          at: /tmp/nais
+      - run: pwd
+      - run: ls .
+      - run: ls /tmp
+      - run: ls /tmp/nais
       - nais/generate-nais-deployment:
           nais-template: nais.yaml
           github-app-id: 1337
@@ -99,9 +105,7 @@ workflows:
   build-test-and-deploy:
     jobs:
       - build
-      - prepare-nais:
-          requires:
-            - build
+      - prepare-nais
       - publish-docker-image:
           requires:
             - build
