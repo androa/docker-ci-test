@@ -67,7 +67,6 @@ workflows:
             - deploy-preprod
       - deploy:
           requires:
-            - prepare-nais
             - acceptance-test-uat
             - acceptance-test-integration
             - acceptance-test-benchmark
