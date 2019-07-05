@@ -28,7 +28,7 @@ jobs:
     steps:
       - run:
           name: "Set image version on base overlay"
-          command: sed -i 's/latest/${VERSION}/' ./nais/base/nais.yaml
+          command: sed -i 's/latest/${CIRCLE_SHA1}/' ./nais/base/nais.yaml
       - run:
           name: "Prepare dev service contract"
           command: kustomize build ./nais/dev -o ./nais/nais-dev-deploy.yaml && cat ./nais/nais-dev-deploy.yaml
@@ -84,7 +84,10 @@ workflows:
   build-test-and-deploy:
     jobs:
       - build
-      - prepare-nais
+      - prepare-nais:
+          filters:
+            branches:
+              only: master
       - publish-docker-image:
           requires:
             - build
