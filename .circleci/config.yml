@@ -22,13 +22,16 @@ executors:
       - image: bitlayer/kustomize@sha256:ab559c7a492656e0260680f89b71cdf07ee79e190020354563e0fdd5f986ac00
 
 jobs:
-  build:
+  build-and-push:
     executor: java
     steps:
       - checkout
       - run: echo "run some kind of build tool"
       - setup_remote_docker
       - docker/build:
+          image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
+          tag: $CIRCLE_SHA1
+      - docker/push:
           image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
           tag: $CIRCLE_SHA1
 
@@ -66,14 +69,6 @@ jobs:
     steps:
       - run: echo true
 
-  publish-docker-image:
-    executor: deployment
-    steps:
-      - setup_remote_docker
-      - docker/push:
-          image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
-          tag: $CIRCLE_SHA1
-
   deploy-preprod:
     executor: deployment
     steps:
@@ -102,14 +97,11 @@ workflows:
   version: 2.1
   build-test-and-deploy:
     jobs:
-      - build
+      - build-and-push
       - prepare-nais
-      - publish-docker-image:
-          requires:
-            - build
       - deploy-preprod:
           requires:
-            - publish-docker-image
+            - build-and-push
             - prepare-nais
       - acceptance-test-uat:
           requires:
