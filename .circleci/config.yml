@@ -22,10 +22,16 @@ jobs:
     steps:
       - checkout
       - run: echo "run some kind of build tool"
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - nais/*
 
   prepare-nais:
     executor: toolbox
     steps:
+      - attach_workspace:
+          at: /tmp/workspace
       - run:
           name: "Set image version on base overlay"
           command: sed -i 's/latest/${VERSION}/' ./nais/base/nais.yaml
