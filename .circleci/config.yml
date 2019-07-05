@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  nais: 'navikt/nais-deployment:1.1.1'
+
 executors:
   builder-java:
      docker:
@@ -14,16 +17,16 @@ jobs:
     executor: builder-java
     steps:
       - checkout
-      - run: echo true
-      - run: docker build .
-      - run: echo true
+      - run: echo "run some kind of build tool"
 
-  deploy-preprod:
-    executor: toolbox
-    environment:
-      FOO: bar
+  prepare-nais:
     steps:
-      - run: echo true
+      - name: "Set image version on base overlay"
+        command: sed -i 's/latest/${VERSION}/' ./nais/base/nais.yaml
+      - name: "Prepare dev service contract"
+        command: kustomize build ./nais/dev -o ./nais/nais-dev-deploy.yaml && cat ./nais/nais-dev-deploy.yaml
+      - name: "Prepare prod service contract"
+        command: kustomize build ./nais/prod -o ./nais/nais-prod-deploy.yaml &&  cat ./nais/nais-prod-deploy.yaml
 
   acceptance-test-uat:
     executor: toolbox
@@ -40,22 +43,44 @@ jobs:
     steps:
       - run: echo true
 
-  deploy:
-    executor: toolbox
-    environment:
-      FOO: bar
+  publish-docker-image:
     steps:
-      - run: kubectl
+      - nais/docker-deploy:
+          image: navikt/foo
+
+  deploy-preprod:
+    steps:
+      - nais/deploy:
+          build-and-push-docker-image: false
+          repo: navikt/example-repo
+          image: navikt/example-image
+          github-app-id: 1337
+          nais-template: nais.yaml
+          environment: dev-fss
+          team: awesome-team
+
+  deploy-prod:
+    steps:
+      - nais/deploy:
+          build-and-push-docker-image: false
+          repo: navikt/example-repo
+          image: navikt/example-image
+          github-app-id: 1337
+          nais-template: nais.yaml
+          environment: prod-fss
+          team: awesome-team
 
 workflows:
   version: 2.1
-  build-and-deploy:
+  build-test-and-deploy:
     jobs:
       - build
-      - deploy-preprod:
-          filters:
-            branches:
-              only: master
+      - prepare-nais
+      - publish-docker-image:
+          requires:
+            - build
+            - prepare-nais
+      - deploy-preprod
       - acceptance-test-uat:
           requires:
             - deploy-preprod
@@ -65,7 +90,7 @@ workflows:
       - acceptance-test-benchmark:
           requires:
             - deploy-preprod
-      - deploy:
+      - deploy-prod:
           requires:
             - acceptance-test-uat
             - acceptance-test-integration
