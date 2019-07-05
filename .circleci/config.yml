@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  nais: 'navikt/nais-deployment:1.1.1'
+  nais: 'navikt/nais-deployment@1.1.1'
 
 executors:
   builder-java:
@@ -12,6 +12,10 @@ executors:
     docker:
       - image: alpine:latest
 
+  deployment:
+    docker:
+      - image: navikt/deployment-cli
+
 jobs:
   build:
     executor: builder-java
@@ -20,13 +24,17 @@ jobs:
       - run: echo "run some kind of build tool"
 
   prepare-nais:
+    executor: toolbox
     steps:
-      - name: "Set image version on base overlay"
-        command: sed -i 's/latest/${VERSION}/' ./nais/base/nais.yaml
-      - name: "Prepare dev service contract"
-        command: kustomize build ./nais/dev -o ./nais/nais-dev-deploy.yaml && cat ./nais/nais-dev-deploy.yaml
-      - name: "Prepare prod service contract"
-        command: kustomize build ./nais/prod -o ./nais/nais-prod-deploy.yaml &&  cat ./nais/nais-prod-deploy.yaml
+      - run:
+          name: "Set image version on base overlay"
+          command: sed -i 's/latest/${VERSION}/' ./nais/base/nais.yaml
+      - run:
+          name: "Prepare dev service contract"
+          command: kustomize build ./nais/dev -o ./nais/nais-dev-deploy.yaml && cat ./nais/nais-dev-deploy.yaml
+      - run:
+          name: "Prepare prod service contract"
+          command: kustomize build ./nais/prod -o ./nais/nais-prod-deploy.yaml &&  cat ./nais/nais-prod-deploy.yaml
 
   acceptance-test-uat:
     executor: toolbox
@@ -44,30 +52,31 @@ jobs:
       - run: echo true
 
   publish-docker-image:
+    executor: deployment
     steps:
       - nais/docker-deploy:
           image: navikt/foo
 
   deploy-preprod:
+    executor: deployment
     steps:
-      - nais/deploy:
-          build-and-push-docker-image: false
-          repo: navikt/example-repo
-          image: navikt/example-image
-          github-app-id: 1337
+      - nais/generate-nais-deployment:
           nais-template: nais.yaml
+          github-app-id: 1337
+          image: navikt/example-image
           environment: dev-fss
+          repo: navikt/example-repo
           team: awesome-team
 
   deploy-prod:
+    executor: deployment
     steps:
-      - nais/deploy:
-          build-and-push-docker-image: false
-          repo: navikt/example-repo
-          image: navikt/example-image
-          github-app-id: 1337
+      - nais/generate-nais-deployment:
           nais-template: nais.yaml
-          environment: prod-fss
+          github-app-id: 1337
+          image: navikt/example-image
+          environment: dev-fss
+          repo: navikt/example-repo
           team: awesome-team
 
 workflows:
