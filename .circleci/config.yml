@@ -65,7 +65,7 @@ jobs:
     executor: deployment
     steps:
       - nais/docker-deploy:
-          image: CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
+          image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
 
   deploy-preprod:
     executor: deployment
