@@ -44,9 +44,9 @@ jobs:
       - run: pwd
       - run: ls nais
       - persist_to_workspace:
-          root: nais
+          root: ./nais
           paths:
-            - "*deploy.yaml"
+            - ./*deploy.yaml
 
   acceptance-test-uat:
     executor: toolbox
