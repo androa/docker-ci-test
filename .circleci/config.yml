@@ -16,6 +16,10 @@ executors:
     docker:
       - image: navikt/deployment-cli
 
+  kustomize:
+    docker:
+      - image: bitlayer/kustomize@sha256:ab559c7a492656e0260680f89b71cdf07ee79e190020354563e0fdd5f986ac00
+
 jobs:
   build:
     executor: java
@@ -24,15 +28,9 @@ jobs:
       - run: echo "run some kind of build tool"
 
   prepare-nais:
-    executor: deployment
+    executor: kustomize
     steps:
       - checkout
-      - run:
-          command: |
-            wget -O /usr/local/bin/kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/v${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64 && \
-            chmod +x /usr/local/bin/kustomize
-          environment:
-            KUSTOMIZE_VERSION: 2.1.0
       - run:
           name: "Set image version on base overlay"
           command: sed -i 's/latest/${CIRCLE_SHA1}/' ./nais/base/nais.yaml
@@ -42,6 +40,9 @@ jobs:
       - run:
           name: "Prepare prod service contract"
           command: kustomize build ./nais/prod -o ./nais/nais-prod-deploy.yaml &&  cat ./nais/nais-prod-deploy.yaml
+      - run: ls .
+      - run: pwd
+      - run: ls nais
       - persist_to_workspace:
           root: nais
           paths:
