@@ -28,13 +28,32 @@ jobs:
   prepare-nais:
     executor: toolbox
     steps:
-      - run:
-        command: |
-          sed -i 's/latest/${VERSION}/' ./nais/base/nais.yaml
-          kustomize build ./nais/dev -o ./nais/nais-dev-deploy.yaml &&  cat ./nais/nais-dev-deploy.yaml
-          kustomize build ./nais/prod -o ./nais/nais-prod-deploy.yaml &&  cat ./nais/nais-prod-deploy.yaml
+      - run: echo true
+
+  deploy-preprod:
+    executor: toolbox
+    environment:
+      FOO: bar
+    steps:
+      - run: echo true
+
+  acceptance-test-uat:
+    executor: toolbox
+    steps:
+      - run: echo true
+
+  acceptance-test-integration:
+    executor: toolbox
+    steps:
+      - run: echo true
+
+  acceptance-test-benchmark:
+    executor: toolbox
+    steps:
+      - run: echo true
 
   deploy:
+    executor: toolbox
     environment:
       FOO: bar
     steps:
