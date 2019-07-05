@@ -14,7 +14,7 @@ executors:
       - image: alpine:latest
 
 jobs:
-  build_jar:
+  build-jar:
     executor: builder_java
     steps:
       - checkout
@@ -63,4 +63,4 @@ workflows:
   version: 2.1
   build-and-deploy:
     jobs:
-      - build_jar
+      - build-jar
