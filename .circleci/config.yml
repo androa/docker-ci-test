@@ -65,9 +65,8 @@ workflows:
     jobs:
       - build
       - build-docker
+      - prepare-nais
       - deploy-preprod:
-          requires:
-            - prepare-nais
           filters:
             branches:
               only: master
