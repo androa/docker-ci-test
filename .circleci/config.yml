@@ -108,6 +108,7 @@ workflows:
       - deploy-preprod:
           requires:
             - publish-docker-image
+            - prepare-nais
       - acceptance-test-uat:
           requires:
             - deploy-preprod
