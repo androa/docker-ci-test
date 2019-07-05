@@ -4,7 +4,7 @@ orbs:
   nais: 'navikt/nais-deployment@1.1.1'
 
 executors:
-  builder-java:
+  java:
      docker:
        - image: circleci/openjdk:11-jdk
 
@@ -18,7 +18,7 @@ executors:
 
 jobs:
   build:
-    executor: builder-java
+    executor: java
     steps:
       - checkout
       - run: echo "run some kind of build tool"
