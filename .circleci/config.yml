@@ -24,7 +24,7 @@ jobs:
       - run: echo "run some kind of build tool"
 
   prepare-nais:
-    executor: toolbox
+    executor: deployment
     steps:
       - checkout
       - run:
