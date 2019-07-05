@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  nais: 'navikt/nais-deployment:XYZ'
-
 executors:
   builder-java:
     docker:
@@ -77,15 +74,3 @@ workflows:
           filters:
             branches:
               only: master
-
-workflow:
-  deploy-docker-and-nais:
-    jobs:
-      - nais/deploy:
-          context: NAIS deployment
-          repo: navikt/example-repo
-          image: navikt/example-image
-          github-app-id: 1337
-          nais-template: nais.yaml
-          environment: dev-fss
-          team: teamdagpenger
