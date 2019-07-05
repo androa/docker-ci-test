@@ -30,6 +30,7 @@ jobs:
           name: Lint, test, and build application
           command: ./scripts/tests || mvn build || npm build || true
       - setup_remote_docker
+      - docker/check
       - docker/build:
           image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
           tag: $CIRCLE_SHA1
