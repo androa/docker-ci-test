@@ -41,23 +41,10 @@ jobs:
       - run:
           name: "Prepare prod service contract"
           command: kustomize build ./nais/prod -o ./nais/nais-prod-deploy.yaml &&  cat ./nais/nais-prod-deploy.yaml
-      - run: ls .
-      - run: pwd
-      - run: ls nais
       - persist_to_workspace:
           root: ./nais
           paths:
             - ./*deploy.yaml
-
-  check-nais:
-    executor: deployment
-    steps:
-      - attach_workspace:
-          at: /tmp/nais
-      - run: pwd
-      - run: ls .
-      - run: ls /tmp
-      - run: ls /tmp/nais
 
   acceptance-test-uat:
     executor: toolbox
@@ -77,12 +64,6 @@ jobs:
   publish-docker-image:
     executor: deployment
     steps:
-      - attach_workspace:
-          at: /tmp/nais
-      - run: pwd
-      - run: ls .
-      - run: ls /tmp
-      - run: ls /tmp/nais
       - nais/docker-deploy:
           image: $CIRCLE_PROJECT_REPONAME
 
@@ -91,12 +72,8 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/nais
-      - run: pwd
-      - run: ls .
-      - run: ls /tmp
-      - run: ls /tmp/nais
       - nais/generate-nais-deployment:
-          nais-template: nais.yaml
+          nais-template: /tmp/nais/nais-dev-deploy.yaml
           github-app-id: 1337
           image: $CIRCLE_PROJECT_REPONAME
           environment: dev-fss
@@ -107,7 +84,7 @@ jobs:
     executor: deployment
     steps:
       - nais/generate-nais-deployment:
-          nais-template: nais.yaml
+          nais-template: /tmp/nais/nais-prod-deploy.yaml
           github-app-id: 1337
           image: navikt/example-image
           environment: dev-fss
@@ -120,9 +97,6 @@ workflows:
     jobs:
       - build
       - prepare-nais
-      - check-nais:
-          requires:
-            - prepare-nais
       - publish-docker-image:
           requires:
             - build
