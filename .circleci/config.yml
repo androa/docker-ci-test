@@ -14,7 +14,7 @@ executors:
       - image: alpine:latest
 
 jobs:
-  build-jar:
+  build:
     executor: builder-java
     steps:
       - checkout
@@ -63,14 +63,10 @@ workflows:
   version: 2.1
   build-and-deploy:
     jobs:
-      - build:
-          requires:
-            - build-jar
-            - build-docker
-            - prepare-nais
+      - build
+      - build-docker
       - deploy-preprod:
           requires:
-            - build
             - prepare-nais
           filters:
             branches:
