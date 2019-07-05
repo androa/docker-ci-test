@@ -5,12 +5,59 @@ executors:
     docker:
       - image: openjdk:11-jdk-slim
 
+  builder-docker:
+    docker:
+      - image: docker:stable
+
+  toolbox:
+    docker:
+      - image: alpine:latest
+
 jobs:
   build_jar:
     executor: builder_java
     steps:
       - checkout
       - run: echo true
+
+  build-docker:
+    executor: builder-docker
+    steps:
+      - run: docker build .
+
+  prepare-nais:
+    executor: toolbox
+    steps:
+      - run: echo true
+
+  deploy-preprod:
+    executor: toolbox
+    environment:
+      FOO: bar
+    steps:
+      - run: echo true
+
+  acceptance-test-uat:
+    executor: toolbox
+    steps:
+      - run: echo true
+
+  acceptance-test-integration:
+    executor: toolbox
+    steps:
+      - run: echo true
+
+  acceptance-test-benchmark:
+    executor: toolbox
+    steps:
+      - run: echo true
+
+  deploy:
+    executor: toolbox
+    environment:
+      FOO: bar
+    steps:
+      - run: kubectl
 
 workflows:
   version: 2.1
