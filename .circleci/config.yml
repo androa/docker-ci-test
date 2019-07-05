@@ -55,12 +55,12 @@ jobs:
             echo "export ZONE=$(yq r nais/base/kustomization.yaml commonAnnotations.zone)" >> ./nais/deploy.env
       - run:
           name: "Set image on base overlay"
-          command: yq w -i nais/base/nais.yaml spec.image ./nais/base/nais.yaml docker.io/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
+          command: yq w -i nais/base/nais.yaml spec.image docker.io/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
       - run:
           name: "Prepare kustomized service contracts"
           command: |
-            kustomize build ./nais/dev -o ./nais/nais-dev-deploy.yaml && cat ./nais/nais-dev-deploy.yaml
-            kustomize build ./nais/prod -o ./nais/nais-prod-deploy.yaml &&  cat ./nais/nais-prod-deploy.yaml
+            kustomize build ./nais/dev | tee ./nais/nais-dev-deploy.yaml
+            kustomize build ./nais/prod | tee ./nais/nais-prod-deploy.yaml
       - persist_to_workspace:
           root: ./nais
           paths:
