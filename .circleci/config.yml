@@ -49,6 +49,16 @@ jobs:
           paths:
             - ./*deploy.yaml
 
+  check-nais:
+    executor: deployment
+    steps:
+      - attach_workspace:
+          at: /tmp/nais
+      - run: pwd
+      - run: ls .
+      - run: ls /tmp
+      - run: ls /tmp/nais
+
   acceptance-test-uat:
     executor: toolbox
     steps:
@@ -110,6 +120,9 @@ workflows:
     jobs:
       - build
       - prepare-nais
+      - check-nais:
+          requires:
+            - prepare-nais
       - publish-docker-image:
           requires:
             - build
