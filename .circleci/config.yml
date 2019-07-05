@@ -1,7 +1,7 @@
 version: 2.1
 
 executors:
-  builder_java:
+  builder-java:
     docker:
       - image: openjdk:11-jdk-slim
 
@@ -15,7 +15,7 @@ executors:
 
 jobs:
   build-jar:
-    executor: builder_java
+    executor: builder-java
     steps:
       - checkout
       - run: echo true
@@ -64,32 +64,32 @@ workflows:
   build-and-deploy:
     jobs:
       - build:
-        requires:
-          - build-jar
-          - build-docker
-          - prepare-nais
+          requires:
+            - build-jar
+            - build-docker
+            - prepare-nais
       - deploy-preprod:
-        requires:
-          - build
-          - prepare-nais
-        filters:
-          branches:
-            only: master
+          requires:
+            - build
+            - prepare-nais
+          filters:
+            branches:
+              only: master
       - acceptance-test-uat:
-        requires:
-          - deploy-preprod
+          requires:
+            - deploy-preprod
       - acceptance-test-integration:
-        requires:
-          - deploy-preprod
+          requires:
+            - deploy-preprod
       - acceptance-test-benchmark:
-        requires:
-          - deploy-preprod
+          requires:
+            - deploy-preprod
       - deploy:
-        requires:
-          - prepare-nais
-          - acceptance-test-uat
-          - acceptance-test-integration
-          - acceptance-test-benchmark
-        filters:
-          branches:
-            only: master
+          requires:
+            - prepare-nais
+            - acceptance-test-uat
+            - acceptance-test-integration
+            - acceptance-test-benchmark
+          filters:
+            branches:
+              only: master
