@@ -1,7 +1,8 @@
 version: 2.1
 
 orbs:
-  nais: 'navikt/nais-deployment@1.1.1'
+  nais: navikt/nais-deployment@1.1.1
+  docker: circleci/docker@0.5.1
 
 executors:
   java:
@@ -64,7 +65,7 @@ jobs:
   publish-docker-image:
     executor: deployment
     steps:
-      - nais/docker-deploy:
+      - docker/push:
           image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
 
   deploy-preprod:
