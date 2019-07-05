@@ -32,7 +32,10 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/nais
-      - run: pwd && ls . && ls /tmp && ls /tmp/nais
+      - run: pwd
+      - run: ls .
+      - run: ls /tmp
+      - run: ls /tmp/nais
       - run:
           name: "Set image version on base overlay"
           command: sed -i 's/latest/${CIRCLE_SHA1}/' ./nais/base/nais.yaml
