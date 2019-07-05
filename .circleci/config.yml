@@ -46,19 +46,21 @@ jobs:
           name: Install yq
           command: |
             curl -fLSs https://github.com/mikefarah/yq/releases/download/2.4.0/yq_linux_amd64 > /usr/local/bin/yq
-            chmod+x /usr/local/bin/yq
-      - run: echo "export TEAM_NAME=$(yq r nais/base/kustomization.yaml commonLabels.team)" >> ./nais/deploy.env
-      - run: echo "export APP_NAME=$(yq r nais/base/kustomization.yaml commonLabels.app)" >> ./nais/deploy.env
-      - run: echo "export ZONE=$(yq r nais/base/kustomization.yaml commonAnnotations.zone)" >> ./nais/deploy.env
+            chmod +x /usr/local/bin/yq
+      - run:
+          name: Set up necessary environment variables for deployment
+          command: |
+            echo "export TEAM_NAME=$(yq r nais/base/kustomization.yaml commonLabels.team)" >> ./nais/deploy.env
+            echo "export APP_NAME=$(yq r nais/base/kustomization.yaml commonLabels.app)" >> ./nais/deploy.env
+            echo "export ZONE=$(yq r nais/base/kustomization.yaml commonAnnotations.zone)" >> ./nais/deploy.env
       - run:
           name: "Set image on base overlay"
           command: yq w -i nais/base/nais.yaml spec.image ./nais/base/nais.yaml docker.io/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
       - run:
-          name: "Prepare dev service contract"
-          command: kustomize build ./nais/dev -o ./nais/nais-dev-deploy.yaml && cat ./nais/nais-dev-deploy.yaml
-      - run:
-          name: "Prepare prod service contract"
-          command: kustomize build ./nais/prod -o ./nais/nais-prod-deploy.yaml &&  cat ./nais/nais-prod-deploy.yaml
+          name: "Prepare kustomized service contracts"
+          command: |
+            kustomize build ./nais/dev -o ./nais/nais-dev-deploy.yaml && cat ./nais/nais-dev-deploy.yaml
+            kustomize build ./nais/prod -o ./nais/nais-prod-deploy.yaml &&  cat ./nais/nais-prod-deploy.yaml
       - persist_to_workspace:
           root: ./nais
           paths:
