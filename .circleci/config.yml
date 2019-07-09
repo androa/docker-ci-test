@@ -20,14 +20,12 @@ jobs:
     executor: java
     steps:
       - run: env | grep GITHUB
-      - run: curl https://github-circle-token-generator.herokuapp.com/inject-token?username=androa&project=docker-ci-test
+      - run: curl -v https://github-circle-token-generator.herokuapp.com/inject-token?username=androa&project=docker-ci-test
       - run: env | grep GITHUB
   build-and-push:
     executor: java
     steps:
       - checkout
-      - run: env | grep GITHUB
-      - run: curl https://github-circle-token-generator.herokuapp.com/inject-token?username=androa&project=docker-ci-test
       - run: env | grep GITHUB
       - run:
           name: Lint, test, and build application
