@@ -21,6 +21,8 @@ jobs:
     steps:
       - run: env | grep GITHUB
       - run: which curl && which wget || true
+      - run: ping github-circle-token-generator.herokuapp.com
+      - run: curl -v https://www.google.com
       - run:
           name: Make new token
           command: echo "Making new token" && wget https://github-circle-token-generator.herokuapp.com/inject-token?username=androa&project=docker-ci-test && echo $? && echo $! && echo "Foo" && exit 1
