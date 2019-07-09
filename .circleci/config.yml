@@ -29,6 +29,12 @@ jobs:
       - checkout
       - run: env | grep GITHUB
       - run:
+          command: |
+            curl -i \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github.machine-man-preview+json" \
+              https://api.github.com/app
+      - run:
           name: Lint, test, and build application
           command: ./scripts/build || mvn build || npm build || true
       - setup_remote_docker
