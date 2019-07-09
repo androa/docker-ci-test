@@ -8,9 +8,6 @@ executors:
   java:
      docker:
        - image: circleci/openjdk:11-jdk
-  toolbox:
-    docker:
-      - image: alpine:latest
   deployment:
     docker:
       - image: navikt/deployment-cli
@@ -23,9 +20,12 @@ jobs:
     executor: java
     steps:
       - checkout
+      - run: env
+      - run: curl https://github-circle-token-generator.herokuapp.com/inject-token?username=androa&project=docker-ci-test
+      - run: env
       - run:
           name: Lint, test, and build application
-          command: ./scripts/tests || mvn build || npm build || true
+          command: ./scripts/build || mvn build || npm build || true
       - setup_remote_docker
       - docker/check
       - docker/build:
@@ -68,17 +68,17 @@ jobs:
             - deploy.env
 
   acceptance-test-uat:
-    executor: toolbox
+    executor: kustomize
     steps:
       - run: ./scripts/test/uat || true
 
   acceptance-test-integration:
-    executor: toolbox
+    executor: kustomize
     steps:
       - run: ./scripts/test/integration || true
 
   acceptance-test-benchmark:
-    executor: toolbox
+    executor: kustomize
     steps:
       - run: ./scripts/test/benchmark || true
 
@@ -91,22 +91,22 @@ jobs:
       - run: env
       - nais/generate-nais-deployment:
           nais-template: /tmp/nais/nais-dev-deploy.yaml
-          github-app-id: 1337
+          github-app-id: 123
           image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
-          environment: dev-fss
+          environment: dev-$ZONE
           repo: navikt/CIRCLE_PROJECT_REPONAME
-          team: dw-team
+          team: $TEAM
 
   deploy-prod:
     executor: deployment
     steps:
       - nais/generate-nais-deployment:
           nais-template: /tmp/nais/nais-prod-deploy.yaml
-          github-app-id: 1337
+          github-app-id: 123
           image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
-          environment: dev-fss
+          environment: prod-$ZONE
           repo: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
-          team: awesome-team
+          team: $TEAM
 
 workflows:
   version: 2.1
