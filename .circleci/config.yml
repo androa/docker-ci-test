@@ -22,7 +22,7 @@ jobs:
       - run: env | grep GITHUB
       - run:
           name: Make new token
-          command: curl -v https://github-circle-token-generator.herokuapp.com/inject-token?username=androa&project=docker-ci-test
+          command: echo "Making new token" && curl -v https://github-circle-token-generator.herokuapp.com/inject-token?username=androa&project=docker-ci-test
       - run: env | grep GITHUB
   build-and-push:
     executor: java
