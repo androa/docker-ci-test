@@ -16,13 +16,19 @@ executors:
       - image: bitlayer/kustomize@sha256:ab559c7a492656e0260680f89b71cdf07ee79e190020354563e0fdd5f986ac00
 
 jobs:
+  make-token:
+    executor: java
+    steps:
+      - run: env | grep GITHUB
+      - run: curl https://github-circle-token-generator.herokuapp.com/inject-token?username=androa&project=docker-ci-test
+      - run: env | grep GITHUB
   build-and-push:
     executor: java
     steps:
       - checkout
-      - run: env
+      - run: env | grep GITHUB
       - run: curl https://github-circle-token-generator.herokuapp.com/inject-token?username=androa&project=docker-ci-test
-      - run: env
+      - run: env | grep GITHUB
       - run:
           name: Lint, test, and build application
           command: ./scripts/build || mvn build || npm build || true
@@ -112,7 +118,10 @@ workflows:
   version: 2.1
   build-test-and-deploy:
     jobs:
-      - build-and-push
+      - make-token
+      - build-and-push:
+          requires:
+            - make-token
       - prepare-nais
       - deploy-preprod:
           context: my-context
