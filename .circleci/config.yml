@@ -21,7 +21,6 @@ jobs:
     steps:
       - run: env | grep GITHUB
       - run: which curl && which wget || true
-      - run: ping github-circle-token-generator.herokuapp.com
       - run: curl -v https://www.google.com
       - run:
           name: Make new token
