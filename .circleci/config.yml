@@ -112,7 +112,7 @@ jobs:
           name: Create new deployment in the GitHub API
                                                         #-H "Accept: application/vnd.github.machine-man-preview+json" \
           command: |
-            curl -i \
+            curl -vi \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github.ant-man-preview+json" \
