@@ -169,6 +169,7 @@ workflows:
       - make-github-token
       - verify-github-token:
           requires:
+            - build-and-push
             - make-github-token
       - create-github-deployment:
       #- deploy-preprod:
