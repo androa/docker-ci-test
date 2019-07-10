@@ -7,7 +7,7 @@ RUN useradd --user-group --create-home --shell /bin/false app &&\
 
 USER app
 
-COPY package.json npm-shrinkwrap.json /usr/src/app/
+COPY package.json package-lock.json /usr/src/app/
 RUN npm install
 
 COPY . /usr/src/app/
