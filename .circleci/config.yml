@@ -40,9 +40,19 @@ jobs:
     executor: java
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - node-v1-{{ .Branch }}-{{ checksum "package-lock.json" }}
+            - node-v1-{{ .Branch }}-
+            - node-v1-
       - run:
           name: Lint, test, and build application
           command: ./scripts/build || mvn build || npm build || true
+      - save_cache:
+          paths:
+            - ~/usr/local/lib/node_modules  # location depends on npm version
+          key: node-v1-{{ .Branch }}-{{ checksum "package-lock.json" }}
+
       - setup_remote_docker
       - docker/check
       - docker/build:
