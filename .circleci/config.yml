@@ -17,21 +17,24 @@ executors:
 
 jobs:
   make-github-token:
-    executor: java
+    executor: deployment
     steps:
       - run:
           name: Inject GitHub App token
           command: curl -v https://github-circle-token-generator.herokuapp.com/token/inject?owner=$CIRCLE_PROJECT_USERNAME\&project=$CIRCLE_PROJECT_REPONAME
+
   verify-github-token:
     executor: java
     steps:
     - run:
-          name: Verify that token works
-          command: |
-            curl -i \
-              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-              -H "Accept: application/vnd.github.machine-man-preview+json" \
-              https://api.github.com/app
+        name: Verify that token works
+        command: |
+          curl -sS \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github.machine-man-preview+json" \
+            https://api.github.com/app | jq -e ".id == \"${GITHUB_APP_ID}\""
+        environment:
+          GITHUB_APP_ID: 35082
 
   build-and-push:
     executor: java
