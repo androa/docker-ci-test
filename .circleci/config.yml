@@ -166,10 +166,11 @@ workflows:
     jobs:
       - build-and-push
       - prepare-nais
-      - make-github-token
-      - verify-github-token:
+      - make-github-token:
           requires:
             - build-and-push
+      - verify-github-token:
+          requires:
             - make-github-token
       - create-github-deployment:
       #- deploy-preprod:
