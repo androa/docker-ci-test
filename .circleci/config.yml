@@ -16,24 +16,24 @@ executors:
       - image: bitlayer/kustomize@sha256:ab559c7a492656e0260680f89b71cdf07ee79e190020354563e0fdd5f986ac00
 
 jobs:
-  make-token:
+  make-github-token:
     executor: java
     steps:
-      - run: env | grep GITHUB
-      - run: curl -v https://www.google.com/?username=$CIRCLE_PROJECT_USERNAME&project=$CIRCLE_PROJECT_REPONAME
-      - run: curl -v https://github-circle-token-generator.herokuapp.com/inject-token?username=androa\&project=docker-ci-test
-      - run: env | grep GITHUB
-  build-and-push:
-    executor: java
-    steps:
-      - checkout
-      - run: env | grep GITHUB
       - run:
+          name: Inject GitHub App token
+          command: curl -v https://github-circle-token-generator.herokuapp.com/token/inject?owner=$CIRCLE_PROJECT_USERNAME&project=$CIRCLE_PROJECT_REPONAME
+      - run:
+          name: Verify that token works
           command: |
             curl -i \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github.machine-man-preview+json" \
               https://api.github.com/app
+
+  build-and-push:
+    executor: java
+    steps:
+      - checkout
       - run:
           name: Lint, test, and build application
           command: ./scripts/build || mvn build || npm build || true
@@ -61,6 +61,7 @@ jobs:
       - run:
           name: Set up necessary environment variables for deployment
           command: |
+            echo "export GITHUB_APP_ID=21626" >> ./nais/deploy.env
             echo "export TEAM_NAME=$(yq r nais/base/kustomization.yaml commonLabels.team)" >> ./nais/deploy.env
             echo "export APP_NAME=$(yq r nais/base/kustomization.yaml commonLabels.app)" >> ./nais/deploy.env
             echo "export ZONE=$(yq r nais/base/kustomization.yaml commonAnnotations.zone)" >> ./nais/deploy.env
@@ -72,11 +73,33 @@ jobs:
           command: |
             kustomize build ./nais/dev | tee ./nais/nais-dev-deploy.yaml
             kustomize build ./nais/prod | tee ./nais/nais-prod-deploy.yaml
+      - run:
+          name: "Prepare GitHub deployment requests"
+          command: |
+            export YAML=$(yq r -j ./nais/nais-dev-deploy.yaml)
+            cat deployment-request.json | jq ".environment = \"dev-$ZONE\"|.payload.team = \"$TEAM_NAME\"|.payload.kubernetes.resources = \"${YAML//\"/\\\"}\"" > deployment-request-dev.json
+            export YAML=$(yq r -j ./nais/nais-prod-deploy.yaml)
+            cat deployment-request.json | jq ".environment = \"prod-$ZONE\"|.payload.team = \"$TEAM_NAME\"|.payload.kubernetes.resources = \"${YAML//\"/\\\"}\"" > deployment-request-prod.json
       - persist_to_workspace:
           root: ./nais
           paths:
             - ./*deploy.yaml
             - deploy.env
+            - deployment-request-*.json
+
+  create-github-deployment:
+    executor: deployment
+    steps:
+      - run:
+          name: Create new deployment in the GitHub API
+          command: |
+            curl -i \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github.machine-man-preview+json" \
+              -X POST \
+              -d @/tmp/nais/deployment-request-dev.json
+              https://api.github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/deployments
 
   acceptance-test-uat:
     executor: kustomize
@@ -99,54 +122,54 @@ jobs:
       - attach_workspace:
           at: /tmp/nais
       - run: cat /tmp/nais/deploy.env >> $BASH_ENV
-      - run: env
       - nais/generate-nais-deployment:
           nais-template: /tmp/nais/nais-dev-deploy.yaml
-          github-app-id: 123
+          github-app-id: $GITHUB_APP_ID
           image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
           environment: dev-$ZONE
           repo: navikt/CIRCLE_PROJECT_REPONAME
-          team: $TEAM
+          team: $TEAM_NAME
 
   deploy-prod:
     executor: deployment
     steps:
       - nais/generate-nais-deployment:
           nais-template: /tmp/nais/nais-prod-deploy.yaml
-          github-app-id: 123
+          github-app-id: $GITHUB_APP_ID
           image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
           environment: prod-$ZONE
           repo: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
-          team: $TEAM
+          team: $TEAM_NAME
 
 workflows:
   version: 2.1
   build-test-and-deploy:
     jobs:
-      - make-token
-      - build-and-push:
-          requires:
-            - make-token
+      - build-and-push
       - prepare-nais
-      - deploy-preprod:
+      - make-github-token
+      - create-github-deployment:
+      #- deploy-preprod:
           context: my-context
           requires:
             - build-and-push
             - prepare-nais
-      - acceptance-test-uat:
-          requires:
-            - deploy-preprod
-      - acceptance-test-integration:
-          requires:
-            - deploy-preprod
-      - acceptance-test-benchmark:
-          requires:
-            - deploy-preprod
-      - deploy-prod:
-          requires:
-            - acceptance-test-uat
-            - acceptance-test-integration
-            - acceptance-test-benchmark
-          filters:
-            branches:
-              only: master
+            - make-github-token
+              #- acceptance-test-uat:
+              #    requires:
+              #      - deploy-preprod
+              #- acceptance-test-integration:
+              #    requires:
+              #      - deploy-preprod
+              #- acceptance-test-benchmark:
+              #    requires:
+              #      - deploy-preprod
+
+              #- deploy-prod:
+              #    requires:
+              #      - acceptance-test-uat
+              #      - acceptance-test-integration
+              #      - acceptance-test-benchmark
+              #    filters:
+              #      branches:
+              #        only: master
