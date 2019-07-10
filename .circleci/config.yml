@@ -36,7 +36,7 @@ jobs:
           curl -sS \
             -H "Authorization: Bearer ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.machine-man-preview+json" \
-            https://api.github.com/app | jq ".id == \"${GITHUB_APP_ID}\""
+            https://api.github.com/app | jq ".id == ${GITHUB_APP_ID}"
         environment:
           GITHUB_APP_ID: 35082
 
