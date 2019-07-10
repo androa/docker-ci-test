@@ -24,19 +24,15 @@ jobs:
           command: curl -v https://github-circle-token-generator.herokuapp.com/token/inject?owner=$CIRCLE_PROJECT_USERNAME\&project=$CIRCLE_PROJECT_REPONAME
 
   verify-github-token:
-    executor: java
+    executor: deployment
     steps:
     - run:
-        name: Verify that token works
+        name: Verify that our GitHub token is working
         command: |
           curl -sS \
             -H "Authorization: Bearer ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.machine-man-preview+json" \
-            https://api.github.com/app
-          curl -sS \
-            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-            -H "Accept: application/vnd.github.machine-man-preview+json" \
-            https://api.github.com/app | jq ".id == ${GITHUB_APP_ID}"
+            https://api.github.com/app | jq -e ".id == ${GITHUB_APP_ID}"
         environment:
           GITHUB_APP_ID: 35082
 
