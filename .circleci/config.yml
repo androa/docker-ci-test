@@ -22,7 +22,10 @@ jobs:
       - run:
           name: Inject GitHub App token
           command: curl -v https://github-circle-token-generator.herokuapp.com/token/inject?owner=$CIRCLE_PROJECT_USERNAME&project=$CIRCLE_PROJECT_REPONAME
-      - run:
+  verify-github-token:
+    executor: java
+    steps:
+    - run:
           name: Verify that token works
           command: |
             curl -i \
@@ -148,6 +151,9 @@ workflows:
       - build-and-push
       - prepare-nais
       - make-github-token
+      - verify-github-token:
+          requires:
+            - make-github-token
       - create-github-deployment:
       #- deploy-preprod:
           context: my-context
