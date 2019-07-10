@@ -1,4 +1,4 @@
-FROM node:6.2
+FROM node:12
 
 WORKDIR /usr/src/app
 
@@ -8,7 +8,7 @@ RUN useradd --user-group --create-home --shell /bin/false app &&\
 USER app
 
 COPY package.json package-lock.json /usr/src/app/
-RUN npm install
+RUN npm ci
 
 COPY . /usr/src/app/
 
