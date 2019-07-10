@@ -106,7 +106,7 @@ jobs:
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github.machine-man-preview+json" \
               -X POST \
-              -d @/tmp/nais/deployment-request-dev.json
+              -d @/tmp/nais/deployment-request-dev.json \
               https://api.github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/deployments
 
   acceptance-test-uat:
