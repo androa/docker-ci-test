@@ -29,12 +29,11 @@ jobs:
     - run:
         name: Verify that token works
         command: |
-          env
           curl -sS \
             -H "Authorization: Bearer ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.machine-man-preview+json" \
-            https://api.github.com/app | jq ".id == \"${GITHUB_APP_ID}\""
-          echo curl -sS \
+            https://api.github.com/app
+          curl -sS \
             -H "Authorization: Bearer ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.machine-man-preview+json" \
             https://api.github.com/app | jq ".id == \"${GITHUB_APP_ID}\""
