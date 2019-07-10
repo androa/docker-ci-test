@@ -58,7 +58,7 @@ jobs:
       - checkout
       - run:
           name: Install root certificates
-          command: apk --no-cache add ca-certificates curl
+          command: apk --no-cache add ca-certificates curl jq
       - run:
           name: Install yq
           command: |
