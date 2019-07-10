@@ -77,9 +77,9 @@ jobs:
           name: "Prepare GitHub deployment requests"
           command: |
             export YAML=$(yq r -j ./nais/nais-dev-deploy.yaml)
-            cat deployment-request.json | jq ".environment = \"dev-$ZONE\"|.payload.team = \"$TEAM_NAME\"|.payload.kubernetes.resources = \"${YAML//\"/\\\"}\"" > deployment-request-dev.json
+            cat ./nais/deployment-request.json | jq ".environment = \"dev-$ZONE\"|.payload.team = \"$TEAM_NAME\"|.payload.kubernetes.resources = \"${YAML//\"/\\\"}\"" > ./nais/deployment-request-dev.json
             export YAML=$(yq r -j ./nais/nais-prod-deploy.yaml)
-            cat deployment-request.json | jq ".environment = \"prod-$ZONE\"|.payload.team = \"$TEAM_NAME\"|.payload.kubernetes.resources = \"${YAML//\"/\\\"}\"" > deployment-request-prod.json
+            cat ./nais/deployment-request.json | jq ".environment = \"prod-$ZONE\"|.payload.team = \"$TEAM_NAME\"|.payload.kubernetes.resources = \"${YAML//\"/\\\"}\"" > ./nais/deployment-request-prod.json
       - persist_to_workspace:
           root: ./nais
           paths:
