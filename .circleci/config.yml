@@ -21,7 +21,7 @@ jobs:
     steps:
       - run:
           name: Inject GitHub App token
-          command: curl -v https://github-circle-token-generator.herokuapp.com/token/inject?owner=$CIRCLE_PROJECT_USERNAME&project=$CIRCLE_PROJECT_REPONAME
+          command: curl -v https://github-circle-token-generator.herokuapp.com/token/inject?owner=$CIRCLE_PROJECT_USERNAME\&project=$CIRCLE_PROJECT_REPONAME
   verify-github-token:
     executor: java
     steps:
