@@ -96,6 +96,8 @@ jobs:
   create-github-deployment:
     executor: deployment
     steps:
+      - attach_workspace:
+          at: /tmp/nais
       - run:
           name: Create new deployment in the GitHub API
           command: |
