@@ -118,7 +118,7 @@ commands:
           destination: deployment-requests
 
       - store_artifacts:
-          path: /tmp/nais/*.yaml
+          path: /tmp/nais/
           destination: service-contracts
 
 workflows:
