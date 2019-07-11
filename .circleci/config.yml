@@ -148,7 +148,10 @@ commands:
               -H "Accept: application/vnd.github.flash-preview+json" \
               -X GET \
               $DEPLOYMENT_STATUS_URL
-
+      - run:
+          name: Wait for deployment in the GitHub API to complete
+          command: |
+            DEPLOYMENT_STATUS_URL=$(cat /tmp/deployment/deployment-status-url)
             MAX_WAIT_TIME=60
             ATTEMPTS=0
             POLL_SECONDS=3
