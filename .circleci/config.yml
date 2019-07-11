@@ -156,6 +156,9 @@ commands:
             ATTEMPTS=0
             POLL_SECONDS=3
 
+            echo $DEPLOYMENT_STATUS_URL
+            echo $GITHUB_TOKEN
+
             curl -s \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
