@@ -156,6 +156,12 @@ commands:
             ATTEMPTS=0
             POLL_SECONDS=3
 
+            curl -s \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github.flash-preview+json" \
+              $DEPLOYMENT_STATUS_URL
+
             until $(curl -s \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
