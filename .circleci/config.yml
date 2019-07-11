@@ -78,10 +78,19 @@ jobs:
           command: curl -v https://github-circle-token-generator.herokuapp.com/token/inject?owner=$CIRCLE_PROJECT_USERNAME\&project=$CIRCLE_PROJECT_REPONAME
 
   create-github-deployment:
-    executor: deployment
+    executor: kustomize
     steps:
       - attach_workspace:
           at: /tmp/nais
+
+      - run:
+          name: Install root certificates
+          command: apk --no-cache add ca-certificates curl jq
+      - run:
+          name: Install yq
+          command: |
+            curl -fLSs https://github.com/mikefarah/yq/releases/download/2.4.0/yq_linux_amd64 > /usr/local/bin/yq
+            chmod +x /usr/local/bin/yq
 
       - run:
           name: Load environment variables for deploy
