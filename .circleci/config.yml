@@ -100,19 +100,19 @@ jobs:
       - run:
           name: Create new deployment in the GitHub API
           command: |
-            export YAML=$(yq r -j ./nais/nais-dev-deploy.yaml)
-            cat ./nais/deployment-request.json | \
+            export YAML=$(yq r -j /tmp/nais/nais-dev-deploy.yaml)
+            cat /tmp/nais/deployment-request.json | \
               jq ".environment = \"dev-${ZONE}\" | \
                   .description = \"Automated deploy to dev-${ZONE}\" | \
                   .payload.team = \"${TEAM_NAME}\" | \
-                  .payload.kubernetes.resources = \"${YAML//\"/\\\"}\"" > ./nais/deployment-request-dev.json
+                  .payload.kubernetes.resources = \"${YAML//\"/\\\"}\"" > deployment-request-dev.json
 
             curl -vi \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github.flash-preview+json" \
               -X POST \
-              -d @/tmp/nais/deployment-request-dev.json \
+              -d @deployment-request-dev.json \
               https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/deployments
 
       - persist_to_workspace:
