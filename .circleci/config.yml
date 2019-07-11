@@ -80,12 +80,13 @@ jobs:
   create-github-deployment:
     executor: kustomize
     steps:
-      - attach_workspace:
-          at: /tmp/nais
-
       - run:
           name: Install root certificates
           command: apk --no-cache add ca-certificates curl jq
+
+      - attach_workspace:
+          at: /tmp/nais
+
       - run:
           name: Install yq
           command: |
