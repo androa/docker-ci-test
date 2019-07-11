@@ -141,7 +141,7 @@ commands:
           name: Wait for deployment in the GitHub API to complete
           command: |
             DEPLOYMENT_STATUS_URL=$(cat /tmp/deployment/deployment-status-url)
-            cat $DEPLOYMENT_STATUS_URL
+            echo $DEPLOYMENT_STATUS_URL
             curl -v \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
