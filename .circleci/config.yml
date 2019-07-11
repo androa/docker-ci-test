@@ -10,10 +10,7 @@ executors:
        - image: circleci/openjdk:11-jdk
   deployment:
     docker:
-      - image: navikt/deployment-cli
-  kustomize:
-    docker:
-      - image: bitlayer/kustomize@sha256:ab559c7a492656e0260680f89b71cdf07ee79e190020354563e0fdd5f986ac00
+      - image: androa/ci-cd-toolbox
 
 jobs:
 
@@ -34,17 +31,9 @@ jobs:
           tag: $CIRCLE_SHA1
 
   prepare-nais:
-    executor: kustomize
+    executor: deployment
     steps:
       - checkout
-      - run:
-          name: Install root certificates
-          command: apk --no-cache add ca-certificates curl jq
-      - run:
-          name: Install yq
-          command: |
-            curl -fLSs https://github.com/mikefarah/yq/releases/download/2.4.0/yq_linux_amd64 > /usr/local/bin/yq
-            chmod +x /usr/local/bin/yq
       - run:
           name: Set up necessary environment variables for deployment
           command: |
@@ -78,20 +67,10 @@ jobs:
           command: curl -v https://github-circle-token-generator.herokuapp.com/token/inject?owner=$CIRCLE_PROJECT_USERNAME\&project=$CIRCLE_PROJECT_REPONAME
 
   create-github-deployment:
-    executor: kustomize
+    executor: deployment
     steps:
-      - run:
-          name: Install root certificates
-          command: apk --no-cache add ca-certificates curl jq
-
       - attach_workspace:
           at: /tmp/nais
-
-      - run:
-          name: Install yq
-          command: |
-            curl -fLSs https://github.com/mikefarah/yq/releases/download/2.4.0/yq_linux_amd64 > /usr/local/bin/yq
-            chmod +x /usr/local/bin/yq
 
       - run:
           name: Load environment variables for deploy
@@ -100,12 +79,7 @@ jobs:
       - run:
           name: Create new deployment in the GitHub API
           command: |
-            env
-            cat /tmp/nais/deploy.env
-
-            echo $0
-            source /tmp/nais/deploy.env
-            echo $ZONE
+            source /tmp/nais/deploy.env # Fix with custom image
             export YAML=$(yq r -j /tmp/nais/nais-dev-deploy.yaml)
             cat /tmp/nais/deployment-request.json | \
               jq ".environment = \"dev-${ZONE}\" | \
@@ -127,17 +101,17 @@ jobs:
             - deployment-request-*.json
 
   acceptance-test-uat:
-    executor: kustomize
+    executor: deployment
     steps:
       - run: ./scripts/test/uat || true
 
   acceptance-test-integration:
-    executor: kustomize
+    executor: deployment
     steps:
       - run: ./scripts/test/integration || true
 
   acceptance-test-benchmark:
-    executor: kustomize
+    executor: deployment
     steps:
       - run: ./scripts/test/benchmark || true
 
