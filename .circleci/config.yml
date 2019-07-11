@@ -32,6 +32,10 @@ jobs:
           curl -sS \
             -H "Authorization: Bearer ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.machine-man-preview+json" \
+            https://api.github.com/app
+          curl -sS \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github.machine-man-preview+json" \
             https://api.github.com/app | jq -e ".id == ${GITHUB_APP_ID}"
         environment:
           GITHUB_APP_ID: 35082
@@ -113,6 +117,16 @@ jobs:
                                                         #-H "Accept: application/vnd.github.machine-man-preview+json" \
           command: |
             curl -vi \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github.flash-preview+json" \
+              -X POST \
+              -d @/tmp/nais/deployment-request-dev.json \
+              https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/deployments
+            echo $GITHUB_TOKEN
+            cat /tmp/nais/deployment-request-dev.json
+            echo https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/deployments
+            echo curl -vi \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github.flash-preview+json" \
