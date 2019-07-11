@@ -156,7 +156,10 @@ commands:
             ATTEMPTS=0
             POLL_SECONDS=3
 
-            echo '{}' | jq .
+            echo $DEPLOYMENT_STATUS_URL
+
+            which jq
+            which curl
 
             until $(curl -s --fail \
               -H "Content-Type: application/json" \
