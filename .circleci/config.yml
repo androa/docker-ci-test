@@ -116,7 +116,7 @@ commands:
               -H "Accept: application/vnd.github.flash-preview+json" \
               -X POST \
               -d @deployment-request-<< parameters.environment >>.json \
-              https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/deployments | jq -e .statuses_url | tee deployment-status-url
+              https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/deployments | jq -r -e .statuses_url | tee deployment-status-url
 
       - persist_to_workspace:
           root: .
