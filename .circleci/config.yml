@@ -72,6 +72,11 @@ jobs:
       - create-github-deployment:
           environment: dev
 
+  wait-for-deploy:
+    executor: deployment
+    steps:
+      - wait-for-github-deployment
+
   deploy-prod:
     executor: deployment
     steps:
@@ -111,7 +116,12 @@ commands:
               -H "Accept: application/vnd.github.flash-preview+json" \
               -X POST \
               -d @deployment-request-<< parameters.environment >>.json \
-              https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/deployments | jq -e .url
+              https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/deployments | jq -e .statuses_url | tee deployment-status-url
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - deployment-status-url
 
       - store_artifacts:
           path: ./deployment-request-<< parameters.environment >>.json
@@ -120,6 +130,45 @@ commands:
       - store_artifacts:
           path: /tmp/nais/
           destination: service-contracts
+
+  wait-for-github-deployment:
+    description: Wait for the GitHub deployment is complete
+    steps:
+      - attach_workspace:
+          at: /tmp/deployment
+
+      - run:
+          name: Wait for deployment in the GitHub API to complete
+          command: |
+            DEPLOYMENT_STATUS_URL=$(cat /tmp/deployment/deployment-status-url)
+
+            curl -s --fail \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github.flash-preview+json" \
+              -X GET \
+              $DEPLOYMENT_STATUS_URL
+
+            MAX_WAIT_TIME=60
+            ATTEMPTS=0
+            POLL_SECONDS=3
+
+            until $(curl -s --fail \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github.flash-preview+json" \
+              -X GET \
+              $DEPLOYMENT_STATUS_URL | jq .); do
+              if [ $(($ATTEMPTS * $POLL_SECONDS)) -ge ${MAX_WAIT_TIME} ]; then
+                echo "Deployment timed out"
+                exit 1
+              fi
+
+              printf '.'
+
+              ATTEMPTS=$(($ATTEMPTS+1))
+              sleep $POLL_SECONDS
+            done
 
 workflows:
   version: 2.1
@@ -138,6 +187,9 @@ workflows:
               #filters:
               #  branches:
               #    only: master
+      - wait-for-deploy:
+          requires:
+            - deploy-preprod
       - deploy-prod:
           requires:
             - deploy-preprod
