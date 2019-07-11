@@ -103,6 +103,8 @@ jobs:
             env
             cat /tmp/nais/deploy.env
 
+            echo $0
+            source /tmp/nais/deploy.env
             echo $ZONE
             export YAML=$(yq r -j /tmp/nais/nais-dev-deploy.yaml)
             cat /tmp/nais/deployment-request.json | \
