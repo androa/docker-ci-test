@@ -79,7 +79,6 @@ jobs:
       - run:
           name: Create new deployment in the GitHub API
           command: |
-            source /tmp/nais/deploy.env # Fix with custom image
             export YAML=$(yq r -j /tmp/nais/nais-dev-deploy.yaml)
             cat /tmp/nais/deployment-request.json | \
               jq ".environment = \"dev-${ZONE}\" | \
