@@ -8,7 +8,7 @@ RUN useradd --user-group --create-home --shell /bin/false app &&\
 USER app
 
 COPY package.json package-lock.json /usr/src/app/
-RUN npm ci
+#RUN npm ci
 
 COPY . /usr/src/app/
 
