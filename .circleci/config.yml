@@ -10,7 +10,7 @@ executors:
        - image: circleci/openjdk:11-jdk
   deployment:
     docker:
-      - image: androa/ci-cd-toolbox
+      - image: androa/ci-cd-toolbox@sha256:fc3d3f6f836b523f46702f4f8ca19e5d88fa145aa7c16fc69f26d8d0a7f79a28
 
 jobs:
 
@@ -66,78 +66,60 @@ jobs:
           name: Inject GitHub App token
           command: curl -v https://github-circle-token-generator.herokuapp.com/token/inject?owner=$CIRCLE_PROJECT_USERNAME\&project=$CIRCLE_PROJECT_REPONAME
 
-  create-github-deployment:
+  deploy-preprod:
     executor: deployment
+    steps:
+      - create-github-deployment:
+          environment: dev
+
+  deploy-prod:
+    executor: deployment
+    steps:
+      - create-github-deployment:
+          environment: prod
+
+commands:
+  create-github-deployment:
+    description: Creates a GitHub Deployment through the GitHub API
+    parameters:
+      environment:
+        default: dev
+        description: Cluster environment to deploy to
+        type: enum
+        enum: [ dev, prod ]
     steps:
       - attach_workspace:
           at: /tmp/nais
 
       - run:
-          name: Load environment variables for deploy
+          name: Load environment variables for deployment
           command: cat /tmp/nais/deploy.env >> $BASH_ENV
 
       - run:
           name: Create new deployment in the GitHub API
           command: |
-            export YAML=$(yq r -j /tmp/nais/nais-dev-deploy.yaml)
+            export YAML=$(yq r -j /tmp/nais/nais-<< parameters.environment >>-deploy.yaml)
             cat /tmp/nais/deployment-request.json | \
-              jq ".environment = \"dev-${ZONE}\" | \
-                  .description = \"Automated deploy to dev-${ZONE}\" | \
+              jq ".environment = \"<< parameters.environment >>-${ZONE}\" | \
+                  .description = \"Automated deploy to << parameters.environment >>-${ZONE}\" | \
                   .payload.team = \"${TEAM_NAME}\" | \
-                  .payload.kubernetes.resources = \"${YAML//\"/\\\"}\"" > deployment-request-dev.json
+                  .payload.kubernetes.resources = \"${YAML//\"/\\\"}\"" > deployment-request-<< parameters.environment >>.json
 
             curl -v \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github.flash-preview+json" \
               -X POST \
-              -d @deployment-request-dev.json \
+              -d @deployment-request-<< parameters.environment >>.json \
               https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/deployments
 
-      - persist_to_workspace:
-          root: ./
-          paths:
-            - deployment-request-*.json
+      - store_artifacts:
+          path: deployment-request-*.json
+          destination: deployment-requests
 
-  acceptance-test-uat:
-    executor: deployment
-    steps:
-      - run: ./scripts/test/uat || true
-
-  acceptance-test-integration:
-    executor: deployment
-    steps:
-      - run: ./scripts/test/integration || true
-
-  acceptance-test-benchmark:
-    executor: deployment
-    steps:
-      - run: ./scripts/test/benchmark || true
-
-  deploy-preprod:
-    executor: deployment
-    steps:
-      - attach_workspace:
-          at: /tmp/nais
-      - run: cat /tmp/nais/deploy.env >> $BASH_ENV
-      - nais/generate-nais-deployment:
-          nais-template: /tmp/nais/nais-dev-deploy.yaml
-          github-app-id: $GITHUB_APP_ID
-          image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
-          environment: dev-$ZONE
-          repo: navikt/CIRCLE_PROJECT_REPONAME
-          team: $TEAM_NAME
-
-  deploy-prod:
-    executor: deployment
-    steps:
-      - nais/generate-nais-deployment:
-          nais-template: /tmp/nais/nais-prod-deploy.yaml
-          github-app-id: $GITHUB_APP_ID
-          image: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
-          environment: prod-$ZONE
-          repo: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
-          team: $TEAM_NAME
+      - store_artifacts:
+          path: /tmp/nais/*.yaml
+          destination: service-contracts
 
 workflows:
   version: 2.1
@@ -148,28 +130,17 @@ workflows:
       - make-github-token:
           requires:
             - build-and-push
-      - create-github-deployment:
-      #- deploy-preprod:
-          context: my-context
+      - deploy-preprod:
           requires:
             - build-and-push
             - prepare-nais
             - make-github-token
-              #- acceptance-test-uat:
-              #    requires:
-              #      - deploy-preprod
-              #- acceptance-test-integration:
-              #    requires:
-              #      - deploy-preprod
-              #- acceptance-test-benchmark:
-              #    requires:
-              #      - deploy-preprod
-
-              #- deploy-prod:
-              #    requires:
-              #      - acceptance-test-uat
-              #      - acceptance-test-integration
-              #      - acceptance-test-benchmark
-              #    filters:
-              #      branches:
-              #        only: master
+          filters:
+            branches:
+              only: master
+      - deploy-prod:
+          requires:
+            - deploy-preprod
+          filters:
+            branches:
+              only: masterssss
