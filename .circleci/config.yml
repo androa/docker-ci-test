@@ -149,7 +149,7 @@ commands:
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github.flash-preview+json" \
-              $DEPLOYMENT_STATUS_URL | jq -e '.[]?'
+              $DEPLOYMENT_STATUS_URL | jq -e '.[]?.status == "success"'
             do
               if [ $(($ATTEMPTS * $POLL_SECONDS)) -ge ${MAX_WAIT_TIME} ]
               then
