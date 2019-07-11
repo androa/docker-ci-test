@@ -160,21 +160,16 @@ commands:
 
             which jq
             which curl
+            echo $0
+            bash --version
+
+            until (true);  do echo done; done
 
             until $(curl -s --fail \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github.flash-preview+json" \
-              $DEPLOYMENT_STATUS_URL \
-              | jq .); do
-
-
-
-
-
-
-
-
+              $DEPLOYMENT_STATUS_URL \ | jq .); do
 
               if [ $(($ATTEMPTS * $POLL_SECONDS)) -ge ${MAX_WAIT_TIME} ]; then
                 echo "Deployment timed out"
