@@ -16,47 +16,14 @@ executors:
       - image: bitlayer/kustomize@sha256:ab559c7a492656e0260680f89b71cdf07ee79e190020354563e0fdd5f986ac00
 
 jobs:
-  make-github-token:
-    executor: deployment
-    steps:
-      - run:
-          name: Inject GitHub App token
-          command: curl -v https://github-circle-token-generator.herokuapp.com/token/inject?owner=$CIRCLE_PROJECT_USERNAME\&project=$CIRCLE_PROJECT_REPONAME
-
-  verify-github-token:
-    executor: java
-    steps:
-    - run:
-        name: Verify that our GitHub token is working
-        command: |
-          curl -sS \
-            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-            -H "Accept: application/vnd.github.machine-man-preview+json" \
-            https://api.github.com/app
-          curl -sS \
-            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-            -H "Accept: application/vnd.github.machine-man-preview+json" \
-            https://api.github.com/app | jq -e ".id == ${GITHUB_APP_ID}"
-        environment:
-          GITHUB_APP_ID: 35082
 
   build-and-push:
     executor: java
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - node-v1-{{ .Branch }}-{{ checksum "package-lock.json" }}
-            - node-v1-{{ .Branch }}-
-            - node-v1-
       - run:
           name: Lint, test, and build application
-          command: ./scripts/build || mvn build || npm build || true
-      - save_cache:
-          paths:
-            - ~/usr/local/lib/node_modules  # location depends on npm version
-          key: node-v1-{{ .Branch }}-{{ checksum "package-lock.json" }}
-
+          command: ./scripts/build || ./gradlew build || npm build || true
       - setup_remote_docker
       - docker/check
       - docker/build:
@@ -85,37 +52,51 @@ jobs:
             echo "export TEAM_NAME=$(yq r nais/base/kustomization.yaml commonLabels.team)" >> ./nais/deploy.env
             echo "export APP_NAME=$(yq r nais/base/kustomization.yaml commonLabels.app)" >> ./nais/deploy.env
             echo "export ZONE=$(yq r nais/base/kustomization.yaml commonAnnotations.zone)" >> ./nais/deploy.env
+
       - run:
           name: "Set image on base overlay"
           command: yq w -i nais/base/nais.yaml spec.image docker.io/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
+
       - run:
           name: "Prepare kustomized service contracts"
           command: |
             kustomize build ./nais/dev | tee ./nais/nais-dev-deploy.yaml
             kustomize build ./nais/prod | tee ./nais/nais-prod-deploy.yaml
-      - run:
-          name: "Prepare GitHub deployment requests"
-          command: |
-            export YAML=$(yq r -j ./nais/nais-dev-deploy.yaml)
-            cat ./nais/deployment-request.json | jq ".environment = \"dev-$ZONE\"|.payload.team = \"$TEAM_NAME\"|.payload.kubernetes.resources = \"${YAML//\"/\\\"}\"" > ./nais/deployment-request-dev.json
-            export YAML=$(yq r -j ./nais/nais-prod-deploy.yaml)
-            cat ./nais/deployment-request.json | jq ".environment = \"prod-$ZONE\"|.payload.team = \"$TEAM_NAME\"|.payload.kubernetes.resources = \"${YAML//\"/\\\"}\"" > ./nais/deployment-request-prod.json
+
       - persist_to_workspace:
           root: ./nais
           paths:
             - ./*deploy.yaml
             - deploy.env
-            - deployment-request-*.json
+            - deployment-request.json
+
+  make-github-token:
+    executor: deployment
+    steps:
+      - run:
+          name: Inject GitHub App token
+          command: curl -v https://github-circle-token-generator.herokuapp.com/token/inject?owner=$CIRCLE_PROJECT_USERNAME\&project=$CIRCLE_PROJECT_REPONAME
 
   create-github-deployment:
     executor: deployment
     steps:
       - attach_workspace:
           at: /tmp/nais
+
+      - run:
+          name: Load environment variables for deploy
+          command: cat /tmp/nais/deploy.env >> $BASH_ENV
+
       - run:
           name: Create new deployment in the GitHub API
-                                                        #-H "Accept: application/vnd.github.machine-man-preview+json" \
           command: |
+            export YAML=$(yq r -j ./nais/nais-dev-deploy.yaml)
+            cat ./nais/deployment-request.json | \
+              jq ".environment = \"dev-${ZONE}\" | \
+                  .description = \"Automated deploy to dev-${ZONE}\" | \
+                  .payload.team = \"${TEAM_NAME}\" | \
+                  .payload.kubernetes.resources = \"${YAML//\"/\\\"}\"" > ./nais/deployment-request-dev.json
+
             curl -vi \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
@@ -123,16 +104,11 @@ jobs:
               -X POST \
               -d @/tmp/nais/deployment-request-dev.json \
               https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/deployments
-            echo $GITHUB_TOKEN
-            cat /tmp/nais/deployment-request-dev.json
-            echo https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/deployments
-            echo curl -vi \
-              -H "Content-Type: application/json" \
-              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-              -H "Accept: application/vnd.github.flash-preview+json" \
-              -X POST \
-              -d @/tmp/nais/deployment-request-dev.json \
-              https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/deployments
+
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - deployment-request-*.json
 
   acceptance-test-uat:
     executor: kustomize
@@ -183,9 +159,6 @@ workflows:
       - make-github-token:
           requires:
             - build-and-push
-      - verify-github-token:
-          requires:
-            - make-github-token
       - create-github-deployment:
       #- deploy-preprod:
           context: my-context
