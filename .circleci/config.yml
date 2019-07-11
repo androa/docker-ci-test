@@ -165,19 +165,19 @@ commands:
               -H "Accept: application/vnd.github.flash-preview+json" \
               $DEPLOYMENT_STATUS_URL | jq -e .
 
-            until $(curl -s \
+            until curl -s \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github.flash-preview+json" \
-              $DEPLOYMENT_STATUS_URL | jq -e .); do
-
+              $DEPLOYMENT_STATUS_URL | jq -e .
+            do
               if [ $(($ATTEMPTS * $POLL_SECONDS)) -ge ${MAX_WAIT_TIME} ]
               then
                 echo "Deployment timed out"
                 exit 1
               fi
 
-              echo '.'
+              printf '.'
 
               ATTEMPTS=$(($ATTEMPTS+1))
               sleep $POLL_SECONDS
