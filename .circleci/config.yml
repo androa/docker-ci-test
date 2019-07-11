@@ -142,7 +142,7 @@ commands:
           command: |
             DEPLOYMENT_STATUS_URL=$(cat /tmp/deployment/deployment-status-url)
 
-            curl -s --fail \
+            curl -v \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github.flash-preview+json" \
