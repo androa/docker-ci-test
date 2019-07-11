@@ -102,6 +102,8 @@ jobs:
           command: |
             env
             cat /tmp/nais/deploy.env
+
+            echo $ZONE
             export YAML=$(yq r -j /tmp/nais/nais-dev-deploy.yaml)
             cat /tmp/nais/deployment-request.json | \
               jq ".environment = \"dev-${ZONE}\" | \
@@ -109,7 +111,7 @@ jobs:
                   .payload.team = \"${TEAM_NAME}\" | \
                   .payload.kubernetes.resources = \"${YAML//\"/\\\"}\"" > deployment-request-dev.json
 
-            curl -vi \
+            curl -v \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github.flash-preview+json" \
