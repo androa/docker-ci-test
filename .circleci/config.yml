@@ -48,10 +48,10 @@ jobs:
       - run:
           name: Set up necessary environment variables for deployment
           command: |
-            echo "export GITHUB_APP_ID=21626" >> ./nais/deploy.env
-            echo "export TEAM_NAME=$(yq r ./nais/base/kustomization.yaml commonLabels.team)" >> ./nais/deploy.env
-            echo "export APP_NAME=$(yq r ./nais/base/kustomization.yaml commonLabels.app)" >> ./nais/deploy.env
-            echo "export ZONE=$(yq r ./nais/base/kustomization.yaml commonAnnotations.zone)" >> ./nais/deploy.env
+            echo "GITHUB_APP_ID=21626" >> ./nais/deploy.env
+            echo "TEAM_NAME=$(yq r ./nais/base/kustomization.yaml commonLabels.team)" >> ./nais/deploy.env
+            echo "APP_NAME=$(yq r ./nais/base/kustomization.yaml commonLabels.app)" >> ./nais/deploy.env
+            echo "ZONE=$(yq r ./nais/base/kustomization.yaml commonAnnotations.zone)" >> ./nais/deploy.env
 
       - run:
           name: "Set image on base overlay"
