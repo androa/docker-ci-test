@@ -156,20 +156,11 @@ commands:
             ATTEMPTS=0
             POLL_SECONDS=3
 
-            echo $DEPLOYMENT_STATUS_URL
-
-            which jq
-            which curl
-            echo $0
-            bash --version
-
-            until (true);  do echo done; done
-
-            until $(curl --fail \
+            until $(curl -v --fail \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github.flash-preview+json" \
-              $DEPLOYMENT_STATUS_URL | jq '.' ); do
+              $DEPLOYMENT_STATUS_URL ); do
 
               if [ $(($ATTEMPTS * $POLL_SECONDS)) -ge ${MAX_WAIT_TIME} ]
               then
