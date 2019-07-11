@@ -171,12 +171,13 @@ commands:
               -H "Accept: application/vnd.github.flash-preview+json" \
               $DEPLOYMENT_STATUS_URL \ | jq .); do
 
-              if [ $(($ATTEMPTS * $POLL_SECONDS)) -ge ${MAX_WAIT_TIME} ]; then
+              if [ $(($ATTEMPTS * $POLL_SECONDS)) -ge ${MAX_WAIT_TIME} ]
+              then
                 echo "Deployment timed out"
                 exit 1
               fi
 
-              printf '.'
+              echo '.'
 
               ATTEMPTS=$(($ATTEMPTS+1))
               sleep $POLL_SECONDS
