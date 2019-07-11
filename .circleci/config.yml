@@ -105,16 +105,16 @@ commands:
                   .payload.team = \"${TEAM_NAME}\" | \
                   .payload.kubernetes.resources = \"${YAML//\"/\\\"}\"" > deployment-request-<< parameters.environment >>.json
 
-            curl -v \
+            curl -sS \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
               -H "Accept: application/vnd.github.flash-preview+json" \
               -X POST \
               -d @deployment-request-<< parameters.environment >>.json \
-              https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/deployments
+              https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/deployments | jq -e .url
 
       - store_artifacts:
-          path: deployment-request-*.json
+          path: ./deployment-request-<< parameters.environment >>.json
           destination: deployment-requests
 
       - store_artifacts:
