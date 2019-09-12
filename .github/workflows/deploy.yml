@@ -1,6 +1,6 @@
 name: Deploy
 
-on: [status, check_run, check_suite]
+on: [status]
 
 jobs:
   create-deployment:
