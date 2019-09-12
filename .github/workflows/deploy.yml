@@ -8,4 +8,5 @@ jobs:
     steps:
       #- uses: actions/checkout@master
       - name: Checkout event data
-        run: ls ${GITHUB_EVENT_PATH}
+        run: ls
+        #run: ls ${GITHUB_EVENT_PATH}
