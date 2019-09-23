@@ -3,7 +3,7 @@ name: Lint the code
 on: [push]
 
 jobs:
-  unit-tests:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
