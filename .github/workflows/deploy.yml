@@ -1,9 +1,8 @@
 name: Deploy successful commits
 
 on:
-  #[status]
   check_suite:
-    type: [completed]
+    types: [completed]
 
 jobs:
   create-deployment:
