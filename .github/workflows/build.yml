@@ -8,4 +8,4 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Fake a successful build
-        run: true 4
+        run: true 5
